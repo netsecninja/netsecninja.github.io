@@ -1,4 +1,79 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-03-30T07:47:15-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Network Security Ninja</title><subtitle>A blog to post my Tactics, Techniques, and Procedures (TTPs) as a card-carrying member of the Blue Team (Cyber Defense). </subtitle><author><name>Jeremiah Bess</name></author><entry><title type="html">Deeper analysis through PowerShell decoding</title><link href="http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html" rel="alternate" type="text/html" title="Deeper analysis through PowerShell decoding" /><published>2019-03-16T00:00:00-06:00</published><updated>2019-03-16T00:00:00-06:00</updated><id>http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding</id><content type="html" xml:base="http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html">&lt;p&gt;Often times malware analysis is considered complete when you run the badness in a sandboxed VM and gather the network IOCs observed. However, we can gain a better list of indicators by spending a little extra time on our analysis, as I hope this post will demonstrate as I walk through some simple PowerShell decoding.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-04-01T06:07:48-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Network Security Ninja</title><subtitle>A blog to post my Tactics, Techniques, and Procedures (TTPs) as a card-carrying member of the Blue Team (Cyber Defense). </subtitle><author><name>Jeremiah Bess</name></author><entry><title type="html">How I use Any.Run</title><link href="http://localhost:4000/how-to/2019/04/01/how-I-use-any.run.html" rel="alternate" type="text/html" title="How I use Any.Run" /><published>2019-04-01T00:00:00-06:00</published><updated>2019-04-01T00:00:00-06:00</updated><id>http://localhost:4000/how-to/2019/04/01/how-I-use-any.run</id><content type="html" xml:base="http://localhost:4000/how-to/2019/04/01/how-I-use-any.run.html">&lt;p&gt;&lt;a href=&quot;https://app.any.run&quot;&gt;Any.Run&lt;/a&gt; is a relatively new online sandbox analysis application that is used to run suspicious executables or visit websites, and records system and network level activity. The creators of this service have provided a free version with tons of great features available. There is a subscription service to unlock even more features, however for my purposes the free version works just fine. In this post I will share the two different ways I use this powerful tool.&lt;/p&gt;
+
+&lt;h2 id=&quot;research&quot;&gt;Research&lt;/h2&gt;
+
+&lt;p&gt;The first way to use Any.Run is for research of threats using the public tasks others have run. In the free version of the tool, all submission results are publicly available. This makes Any.Run a very valuable tool for Open Source Intelligence (OSINT). I use these public submissions to identify malware, extract Indicators of Compromise (IOC) and Behaviors of Compromise (BOC), and to identify threat trends. From the homepage click on the icon that looks like a page with a dog eared corner to view the public submissions. This list is updated in real-time as people submit samples for analysis. Use the filter icon to the right of the hash search bar to narrow down your search.&lt;/p&gt;
+
+&lt;p class=&quot;center&quot;&gt;&lt;img src=&quot;/assets/any.run-filters.png&quot; alt=&quot;Any.Run public submissions filters&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For example, if I see a suspicious domain while monitoring or hunting, I can use the filter criteria above to look for existing public samples. Or if I’m interested in specific malware like Ursnif, that can be found by putting its name in the tags. However if I am just looking for a general perspective of the threat landscape, I will set the verdict to malicious and start scrolling through the samples from the last day or two. I will look for threat tags I’m interested in researching and open those in the different browser tab. I like to pull up three to four samples of the same threat family as to get a better idea of any variations.&lt;/p&gt;
+
+&lt;h2 id=&quot;analysis&quot;&gt;Analysis&lt;/h2&gt;
+
+&lt;p&gt;The second way to use Any.Run is for analysis. If you are unable to find an existing sample, you can submit a URL or file for analysis. Once you create a free account, click on New Task. There is a basic mode which you choose your OS and then either provide a URL or upload a file to be run. An advanced screen is available if you want to make any tweaks such as UAC auto-confirm, Anti-evasion, Browser types, and Fakenet or Tor usage. Greyed out options require a subscription.&lt;/p&gt;
+
+&lt;p class=&quot;center&quot;&gt;&lt;img src=&quot;/assets/any.run-advanced-mode.png&quot; alt=&quot;Any.Run advanced mode&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Once everything is set, click Run. You will then watch a real-time execution of your malware or visit to whatever URL you entered. The session will end by displaying the results of the task. The URL listed in your browser bar can now be saved in your investigation notes as a reference or shared out with others. It’s important to note that in the free version all tasks run are public tasks, which means everyone else can see the results. &lt;strong&gt;So don’t run any malware or visit any websites you think might be targeting to your organization or might otherwise reveal sensitive information.&lt;/strong&gt; You also need to be careful of two things: session timeout and user required actions.&lt;/p&gt;
+
+&lt;h4 id=&quot;session-timeout&quot;&gt;Session Timeout&lt;/h4&gt;
+
+&lt;p&gt;Any.Run by default will only run the virtual machine for 60 seconds. While the analysis is running you may click Add 60s in the top right box to add an additional 60 seconds. You will only have a few times you can extend the time with the free version. This is important as sometime downloads take a while, or malware authors build in a delay to evade automated sandbox analysis engines. Another reason you may want to add time is because you need to perform user actions.&lt;/p&gt;
+
+&lt;h4 id=&quot;user-required-actions&quot;&gt;User Required Actions&lt;/h4&gt;
+
+&lt;p&gt;Occasionally the malware or website you are attempting to analyze will require you to perform some actions. Your mouse and keyboard can be used in the VM displayed. For instance, an unzipped file might have several files inside, and you will need to choose which to run. Or a credential phishing site may request your (hopefully) fake credentials to proceed past the login screen. Be aware of these types of actions, and be ready to extend the session time if needed.&lt;/p&gt;
+
+&lt;h2 id=&quot;analysis-results&quot;&gt;Analysis Results&lt;/h2&gt;
+
+&lt;p&gt;Regardless if you found an existing sample or created your own, you now have a ton of information at your fingertips. While I won’t touch on every aspect of the Any.Run result interface, I will explain the parts I use regularly.&lt;/p&gt;
+
+&lt;h4 id=&quot;info-block&quot;&gt;Info block&lt;/h4&gt;
+
+&lt;p class=&quot;center&quot;&gt;&lt;img src=&quot;/assets/any.run-info-block.png&quot; alt=&quot;Any.Run Info block&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Sample source, the environment conditions it was run in, and the detected threat tags.&lt;/li&gt;
+  &lt;li&gt;IOC to list all relevant captured IOCs.&lt;/li&gt;
+  &lt;li&gt;Option to download the sample.&lt;/li&gt;
+  &lt;li&gt;A Process graph to show the parent-child relationship of processes observed. Within this display you may click on any item to get further information about it.&lt;/li&gt;
+  &lt;li&gt;The ATT&amp;amp;CK matrix shows the techniques observed in the sample.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;process&quot;&gt;Process&lt;/h4&gt;
+
+&lt;p class=&quot;center&quot;&gt;&lt;img src=&quot;/assets/any.run-process-and-details.png&quot; alt=&quot;Any.Run Processes and details&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The relevant processes are listed with the full command line as parent processes with nested children processes. Icons displayed under the Process ID show behaviors such as network communications, executables launched, etc.&lt;/li&gt;
+  &lt;li&gt;Clicking on any of these entries shows a detail pane at the bottom with additional information, warnings, and dangers.&lt;/li&gt;
+  &lt;li&gt;The “More Info” advanced detail screen shows the full command line, as well as system-level actions by this process such as modified files, registry changes, network traffic, etc. For example clicking on a PowerShell process and then “More Info” might show the Base64 encoded command called, which I demonstrated how to decode in my previous &lt;a href=&quot;/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html&quot;&gt;blog post&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;network&quot;&gt;Network&lt;/h4&gt;
+
+&lt;p class=&quot;center&quot;&gt;&lt;img src=&quot;/assets/any.run-network-section.png&quot; alt=&quot;Any.Run Processes and details&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;HTTP Requests will show the HTTP result code, the calling process, the full URL, document type, and a few other things. Clicking on one of the entries will show hashes, Exchangeable Image File (EXIF) information, Hex data, as well as a link to download the resulting data.&lt;/li&gt;
+  &lt;li&gt;Connections shows the connection by protocol, calling process, Domain/IP/ASN info, port, and traffic bytes in each direction. Clicking on one of the entries displays a Hex dump of the packet data of the network session. Here we can see things like HTTP request and response headers, and payload data.&lt;/li&gt;
+  &lt;li&gt;DNS Requests show the query and responses.&lt;/li&gt;
+  &lt;li&gt;Threats will output the alerts fired from a Suricata IDS instance with associated alert details.&lt;/li&gt;
+  &lt;li&gt;The PCAP icon on the far right allows you to download a packet capture of the sample.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;files&quot;&gt;Files&lt;/h4&gt;
+
+&lt;p class=&quot;center&quot;&gt;&lt;img src=&quot;/assets/any.run-files-section.png&quot; alt=&quot;Any.Run Processes and details&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;File Modification shows the process, the full path and filename, and file type of any file created or modified.&lt;/li&gt;
+  &lt;li&gt;Clicking on any of these entries will details of the file including the hash, MIME type, a preview of the contents, and even the option to download a copy.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;I use this tool daily for analysis and threat research to help build my threat hunting queries and awareness of the ever-changing threat landscape. I realize this blog post really only scratched the surface. Ultimately Any.Run has quite an intuitive interface, and I hope I have highlighted enough of the extremely useful features to encourage you to try it out.&lt;/p&gt;</content><author><name>Jeremiah Bess</name></author><summary type="html">Any.Run is a relatively new online sandbox analysis application that is used to run suspicious executables or visit websites, and records system and network level activity. The creators of this service have provided a free version with tons of great features available. There is a subscription service to unlock even more features, however for my purposes the free version works just fine. In this post I will share the two different ways I use this powerful tool.</summary></entry><entry><title type="html">Deeper analysis through PowerShell decoding</title><link href="http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html" rel="alternate" type="text/html" title="Deeper analysis through PowerShell decoding" /><published>2019-03-16T00:00:00-06:00</published><updated>2019-03-16T00:00:00-06:00</updated><id>http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding</id><content type="html" xml:base="http://localhost:4000/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html">&lt;p&gt;Often times malware analysis is considered complete when you run the badness in a sandboxed VM and gather the network IOCs observed. However, we can gain a better list of indicators by spending a little extra time on our analysis, as I hope this post will demonstrate as I walk through some simple PowerShell decoding.&lt;/p&gt;
 
 &lt;h1 id=&quot;basic-analysis&quot;&gt;Basic Analysis&lt;/h1&gt;
 

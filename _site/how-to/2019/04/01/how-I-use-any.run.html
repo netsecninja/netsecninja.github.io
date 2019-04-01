@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.0 -->
+<title>How I use Any.Run | Network Security Ninja</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="How I use Any.Run" />
+<meta name="author" content="Jeremiah Bess" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Any.Run is a relatively new online sandbox analysis application that is used to run suspicious executables or visit websites, and records system and network level activity. The creators of this service have provided a free version with tons of great features available. There is a subscription service to unlock even more features, however for my purposes the free version works just fine. In this post I will share the two different ways I use this powerful tool." />
+<meta property="og:description" content="Any.Run is a relatively new online sandbox analysis application that is used to run suspicious executables or visit websites, and records system and network level activity. The creators of this service have provided a free version with tons of great features available. There is a subscription service to unlock even more features, however for my purposes the free version works just fine. In this post I will share the two different ways I use this powerful tool." />
+<link rel="canonical" href="http://localhost:4000/how-to/2019/04/01/how-I-use-any.run.html" />
+<meta property="og:url" content="http://localhost:4000/how-to/2019/04/01/how-I-use-any.run.html" />
+<meta property="og:site_name" content="Network Security Ninja" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-04-01T00:00:00-06:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","headline":"How I use Any.Run","url":"http://localhost:4000/how-to/2019/04/01/how-I-use-any.run.html","dateModified":"2019-04-01T00:00:00-06:00","datePublished":"2019-04-01T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/how-to/2019/04/01/how-I-use-any.run.html"},"author":{"@type":"Person","name":"Jeremiah Bess"},"description":"Any.Run is a relatively new online sandbox analysis application that is used to run suspicious executables or visit websites, and records system and network level activity. The creators of this service have provided a free version with tons of great features available. There is a subscription service to unlock even more features, however for my purposes the free version works just fine. In this post I will share the two different ways I use this powerful tool.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Network Security Ninja" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Network Security Ninja</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">How I use Any.Run</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-04-01T00:00:00-06:00" itemprop="datePublished">Apr 1, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><a href="https://app.any.run">Any.Run</a> is a relatively new online sandbox analysis application that is used to run suspicious executables or visit websites, and records system and network level activity. The creators of this service have provided a free version with tons of great features available. There is a subscription service to unlock even more features, however for my purposes the free version works just fine. In this post I will share the two different ways I use this powerful tool.</p>
+
+<h2 id="research">Research</h2>
+
+<p>The first way to use Any.Run is for research of threats using the public tasks others have run. In the free version of the tool, all submission results are publicly available. This makes Any.Run a very valuable tool for Open Source Intelligence (OSINT). I use these public submissions to identify malware, extract Indicators of Compromise (IOC) and Behaviors of Compromise (BOC), and to identify threat trends. From the homepage click on the icon that looks like a page with a dog eared corner to view the public submissions. This list is updated in real-time as people submit samples for analysis. Use the filter icon to the right of the hash search bar to narrow down your search.</p>
+
+<p class="center"><img src="/assets/any.run-filters.png" alt="Any.Run public submissions filters" /></p>
+
+<p>For example, if I see a suspicious domain while monitoring or hunting, I can use the filter criteria above to look for existing public samples. Or if I’m interested in specific malware like Ursnif, that can be found by putting its name in the tags. However if I am just looking for a general perspective of the threat landscape, I will set the verdict to malicious and start scrolling through the samples from the last day or two. I will look for threat tags I’m interested in researching and open those in the different browser tab. I like to pull up three to four samples of the same threat family as to get a better idea of any variations.</p>
+
+<h2 id="analysis">Analysis</h2>
+
+<p>The second way to use Any.Run is for analysis. If you are unable to find an existing sample, you can submit a URL or file for analysis. Once you create a free account, click on New Task. There is a basic mode which you choose your OS and then either provide a URL or upload a file to be run. An advanced screen is available if you want to make any tweaks such as UAC auto-confirm, Anti-evasion, Browser types, and Fakenet or Tor usage. Greyed out options require a subscription.</p>
+
+<p class="center"><img src="/assets/any.run-advanced-mode.png" alt="Any.Run advanced mode" /></p>
+
+<p>Once everything is set, click Run. You will then watch a real-time execution of your malware or visit to whatever URL you entered. The session will end by displaying the results of the task. The URL listed in your browser bar can now be saved in your investigation notes as a reference or shared out with others. It’s important to note that in the free version all tasks run are public tasks, which means everyone else can see the results. <strong>So don’t run any malware or visit any websites you think might be targeting to your organization or might otherwise reveal sensitive information.</strong> You also need to be careful of two things: session timeout and user required actions.</p>
+
+<h4 id="session-timeout">Session Timeout</h4>
+
+<p>Any.Run by default will only run the virtual machine for 60 seconds. While the analysis is running you may click Add 60s in the top right box to add an additional 60 seconds. You will only have a few times you can extend the time with the free version. This is important as sometime downloads take a while, or malware authors build in a delay to evade automated sandbox analysis engines. Another reason you may want to add time is because you need to perform user actions.</p>
+
+<h4 id="user-required-actions">User Required Actions</h4>
+
+<p>Occasionally the malware or website you are attempting to analyze will require you to perform some actions. Your mouse and keyboard can be used in the VM displayed. For instance, an unzipped file might have several files inside, and you will need to choose which to run. Or a credential phishing site may request your (hopefully) fake credentials to proceed past the login screen. Be aware of these types of actions, and be ready to extend the session time if needed.</p>
+
+<h2 id="analysis-results">Analysis Results</h2>
+
+<p>Regardless if you found an existing sample or created your own, you now have a ton of information at your fingertips. While I won’t touch on every aspect of the Any.Run result interface, I will explain the parts I use regularly.</p>
+
+<h4 id="info-block">Info block</h4>
+
+<p class="center"><img src="/assets/any.run-info-block.png" alt="Any.Run Info block" /></p>
+
+<ul>
+  <li>Sample source, the environment conditions it was run in, and the detected threat tags.</li>
+  <li>IOC to list all relevant captured IOCs.</li>
+  <li>Option to download the sample.</li>
+  <li>A Process graph to show the parent-child relationship of processes observed. Within this display you may click on any item to get further information about it.</li>
+  <li>The ATT&amp;CK matrix shows the techniques observed in the sample.</li>
+</ul>
+
+<h4 id="process">Process</h4>
+
+<p class="center"><img src="/assets/any.run-process-and-details.png" alt="Any.Run Processes and details" /></p>
+
+<ul>
+  <li>The relevant processes are listed with the full command line as parent processes with nested children processes. Icons displayed under the Process ID show behaviors such as network communications, executables launched, etc.</li>
+  <li>Clicking on any of these entries shows a detail pane at the bottom with additional information, warnings, and dangers.</li>
+  <li>The “More Info” advanced detail screen shows the full command line, as well as system-level actions by this process such as modified files, registry changes, network traffic, etc. For example clicking on a PowerShell process and then “More Info” might show the Base64 encoded command called, which I demonstrated how to decode in my previous <a href="/analysis/2019/03/16/deeper-analysis-through-powershell-decoding.html">blog post</a>.</li>
+</ul>
+
+<h4 id="network">Network</h4>
+
+<p class="center"><img src="/assets/any.run-network-section.png" alt="Any.Run Processes and details" /></p>
+
+<ul>
+  <li>HTTP Requests will show the HTTP result code, the calling process, the full URL, document type, and a few other things. Clicking on one of the entries will show hashes, Exchangeable Image File (EXIF) information, Hex data, as well as a link to download the resulting data.</li>
+  <li>Connections shows the connection by protocol, calling process, Domain/IP/ASN info, port, and traffic bytes in each direction. Clicking on one of the entries displays a Hex dump of the packet data of the network session. Here we can see things like HTTP request and response headers, and payload data.</li>
+  <li>DNS Requests show the query and responses.</li>
+  <li>Threats will output the alerts fired from a Suricata IDS instance with associated alert details.</li>
+  <li>The PCAP icon on the far right allows you to download a packet capture of the sample.</li>
+</ul>
+
+<h4 id="files">Files</h4>
+
+<p class="center"><img src="/assets/any.run-files-section.png" alt="Any.Run Processes and details" /></p>
+
+<ul>
+  <li>File Modification shows the process, the full path and filename, and file type of any file created or modified.</li>
+  <li>Clicking on any of these entries will details of the file including the hash, MIME type, a preview of the contents, and even the option to download a copy.</li>
+</ul>
+
+<h2 id="summary">Summary</h2>
+
+<p>I use this tool daily for analysis and threat research to help build my threat hunting queries and awareness of the ever-changing threat landscape. I realize this blog post really only scratched the surface. Ultimately Any.Run has quite an intuitive interface, and I hope I have highlighted enough of the extremely useful features to encourage you to try it out.</p>
+
+
+  </div><a class="u-url" href="/how-to/2019/04/01/how-I-use-any.run.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Network Security Ninja</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Jeremiah Bess</li><li><a class="u-email" href="mailto:jeremiah.bess@gmail.com">jeremiah.bess@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/netsecninja"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">netsecninja</span></a></li><li><a href="https://www.linkedin.com/in/jeremiahbess"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">jeremiahbess</span></a></li><li><a href="https://www.twitter.com/netsecninja"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">netsecninja</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>A blog to post my Tactics, Techniques, and Procedures (TTPs) as a card-carrying member of the Blue Team (Cyber Defense). </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
