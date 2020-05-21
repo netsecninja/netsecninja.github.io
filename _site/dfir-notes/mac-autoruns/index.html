@@ -3,20 +3,20 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
-<title>PSEXEC Forensics | Network Security Ninja</title>
+<title>Mac Autoruns | Network Security Ninja</title>
 <meta name="generator" content="Jekyll v3.8.7" />
-<meta property="og:title" content="PSEXEC Forensics" />
+<meta property="og:title" content="Mac Autoruns" />
 <meta name="author" content="Jeremiah Bess" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Notes from the DFSP episode on PSEXEC Forensics" />
-<meta property="og:description" content="Notes from the DFSP episode on PSEXEC Forensics" />
-<link rel="canonical" href="http://localhost:4000/dfir-notes/psexec-forensics/" />
-<meta property="og:url" content="http://localhost:4000/dfir-notes/psexec-forensics/" />
+<meta name="description" content="Notes from the DFSP episode on Mac Autoruns" />
+<meta property="og:description" content="Notes from the DFSP episode on Mac Autoruns" />
+<link rel="canonical" href="http://localhost:4000/dfir-notes/mac-autoruns/" />
+<meta property="og:url" content="http://localhost:4000/dfir-notes/mac-autoruns/" />
 <meta property="og:site_name" content="Network Security Ninja" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-05-21T17:38:18-06:00" />
 <script type="application/ld+json">
-{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/dfir-notes/psexec-forensics/"},"@type":"BlogPosting","url":"http://localhost:4000/dfir-notes/psexec-forensics/","author":{"@type":"Person","name":"Jeremiah Bess"},"headline":"PSEXEC Forensics","dateModified":"2020-05-21T17:38:18-06:00","datePublished":"2020-05-21T17:38:18-06:00","description":"Notes from the DFSP episode on PSEXEC Forensics","@context":"https://schema.org"}</script>
+{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/dfir-notes/mac-autoruns/"},"@type":"BlogPosting","url":"http://localhost:4000/dfir-notes/mac-autoruns/","author":{"@type":"Person","name":"Jeremiah Bess"},"headline":"Mac Autoruns","dateModified":"2020-05-21T17:38:18-06:00","datePublished":"2020-05-21T17:38:18-06:00","description":"Notes from the DFSP episode on Mac Autoruns","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Network Security Ninja" /></head>
 <body><header class="site-header" role="banner">
@@ -39,46 +39,47 @@
         <article class="post">
 
   <header class="post-header">
-    <h1 class="post-title">PSEXEC Forensics</h1>
+    <h1 class="post-title">Mac Autoruns</h1>
   </header>
 
   <div class="post-content">
-    <p>Notes from the DFSP episode on PSEXEC Forensics</p>
+    <p>Notes from the DFSP episode on Mac Autoruns</p>
 
-<h1 id="source-system-artifacts">Source system artifacts</h1>
+<h1 id="per-user">Per user</h1>
 <ul>
-  <li>psexec.exe</li>
-  <li>EULA in Registry, software hive</li>
-  <li>Shim cache (only written on shutdown. Can use memory to capture)</li>
-  <li>AMCACHE</li>
-  <li>Prefetch</li>
-  <li>MFT File creation date</li>
+  <li>System preferences &gt; Users and Groups. Click on each user you can see the autorun programs for each user.</li>
+  <li>/Users/<em>USER</em>/Library/LaunchAgents</li>
 </ul>
 
-<h1 id="destination-system-artifacts">Destination system artifacts</h1>
+<h1 id="for-all-users">For all users</h1>
 <ul>
-  <li>psexecsvc.exe (though using psexec -r will change the service name)</li>
-  <li>Event logs:
-    <ul>
-      <li>System Event ID 7045 (new service)</li>
-      <li>Security Event ID 4264 (logon)</li>
-      <li>Security Event ID 4672 (elevation of logon)</li>
-      <li>Security Event ID 4697 (service installed)</li>
-      <li>Security Event ID 5140 (access to a share)</li>
-    </ul>
-  </li>
-  <li>All child processes are run in session 0</li>
-  <li>Named pipes and hidden admin shares used for communication</li>
-  <li>Shim cache (only written on shutdown. Can capture memory to analyze)</li>
-  <li>AMCACHE</li>
-  <li>System hive &gt; CurrentControlSet &gt; Services</li>
-  <li>Prefetch</li>
-  <li>MFT File creation date</li>
+  <li>/Library/LaunchDaemons</li>
+  <li>/Library/LaunchAgents</li>
+  <li>/Library/StartupItems</li>
 </ul>
 
-<h1 id="references">References</h1>
+<h1 id="for-system-applications">For system applications</h1>
 <ul>
-  <li><a href="https://www.youtube.com/watch?v=a3dnqbAUF1U">https://www.youtube.com/watch?v=a3dnqbAUF1U</a></li>
+  <li>/System/Library/LaunchAgents</li>
+</ul>
+
+<h1 id="run-as-root-tools">Run as root tools</h1>
+<ul>
+  <li>/Library/PrivilegedHelperTools</li>
+</ul>
+
+<h1 id="plist-files">plist files</h1>
+<ul>
+  <li>com.apple.*.plist are usually legitimate applications</li>
+  <li>Filtered list of processes:</li>
+</ul>
+
+<p><code class="highlighter-rouge">launchctl list | grep -iv com.apple</code></p>
+
+<h1 id="references">References:</h1>
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=yMnsVAjHMGE">https://www.youtube.com/watch?v=yMnsVAjHMGE</a></li>
+  <li><a href="https://vincetocco.com/macos-locations-for-programs-that-start-on-boot-daemons-and-launchctl/">https://vincetocco.com/macos-locations-for-programs-that-start-on-boot-daemons-and-launchctl/</a></li>
 </ul>
 
   </div>
