@@ -28,5 +28,5 @@ Notes from the DFSP episode on Mac Autoruns
 `launchctl list | grep -iv com.apple`
 
 # References:
-* <https://www.youtube.com/watch?v=yMnsVAjHMGE>
-* <https://vincetocco.com/macos-locations-for-programs-that-start-on-boot-daemons-and-launchctl/>
+* [DFSP - Mac Autoruns episode](https://www.youtube.com/watch?v=yMnsVAjHMGE)
+* [Vince Tocco - MacOS locations for programs that start on boot – Daemons and Launchctl blog post](https://vincetocco.com/macos-locations-for-programs-that-start-on-boot-daemons-and-launchctl/)

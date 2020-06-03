@@ -31,4 +31,4 @@ Notes from the DFSP episode on PSEXEC Forensics
 * MFT File creation date
 
 # References
-* <https://www.youtube.com/watch?v=a3dnqbAUF1U>
+* [DFSP - PSEXEC Forensics episode](https://www.youtube.com/watch?v=a3dnqbAUF1U)
