@@ -31,7 +31,6 @@ Here's a list of online tools I use often or have saved for the occasional odd u
 * [RegExr](https://regexr.com/) - Learn, Build, & Test RegEx
 * [Shrib](https://shrib.com) - Online notepad
 * [MITRE ATT&CK](https://attack.mitre.org/matrices/enterprise/) - Knowledge base of adversary tactics and techniques based on real-world observations
-* [SANS FOR508 Poster](https://www.sans.org/security-resources/posters/hunt-evil/165/download) - Knowing what’s normal on a Windows host helps cut through the noise to quickly locate potential malware.
 * [Logging Cheat Sheet - Malware Archaeology](https://www.malwarearchaeology.com/cheat-sheets)
 * [LOLBAS](https://lolbas-project.github.io/#) - Living Off The Land Binaries, Scripts, and Libraries
 

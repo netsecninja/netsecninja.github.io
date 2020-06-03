@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>WMI Forensics | Network Security Ninja</title>
+<meta name="generator" content="Jekyll v3.8.7" />
+<meta property="og:title" content="WMI Forensics" />
+<meta name="author" content="Jeremiah Bess" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Notes from my research into WMI Forensics" />
+<meta property="og:description" content="Notes from my research into WMI Forensics" />
+<link rel="canonical" href="http://localhost:4000/dfir-notes/wmi-forensics/" />
+<meta property="og:url" content="http://localhost:4000/dfir-notes/wmi-forensics/" />
+<meta property="og:site_name" content="Network Security Ninja" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-06-03T14:22:47-06:00" />
+<script type="application/ld+json">
+{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/dfir-notes/wmi-forensics/"},"@type":"BlogPosting","url":"http://localhost:4000/dfir-notes/wmi-forensics/","author":{"@type":"Person","name":"Jeremiah Bess"},"headline":"WMI Forensics","dateModified":"2020-06-03T14:22:47-06:00","datePublished":"2020-06-03T14:22:47-06:00","description":"Notes from my research into WMI Forensics","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Network Security Ninja" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Network Security Ninja</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a><a class="page-link" href="/malware-lab/">Malware Lab</a><a class="page-link" href="/resources/">Resources</a><a class="page-link" href="/tools/">Tools</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">WMI Forensics</h1>
+  </header>
+
+  <div class="post-content">
+    <p>Notes from my research into WMI Forensics</p>
+
+<h1 id="summary">Summary</h1>
+<p>WMI is a built-in tool that is normal in a Windows environments. Admins, installer scripts, and monitoring software can all use it legitimately. However, WMI can also be used in all attack phases following exploitation. Baseline the normal activity, and look for outliers. As SANS says, “Hunt evil, know normal”.</p>
+
+<h1 id="terms">Terms</h1>
+<ul>
+  <li>Event Filter - A monitored condition which triggers an Event Consumer</li>
+  <li>Event Consumer - A script or executable to run when a filter is triggered</li>
+  <li>Binding - Ties the Filter and Consumer together</li>
+  <li>CIM Repository - A database that stores WMI class instances, definitions, and namespaces</li>
+  <li>MOF - Managed Object Format file, used to define WMI classes to be inserted into the repository
+    <ul>
+      <li>Note: these can be named anything and placed anywhere</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="processes">Processes</h1>
+<ul>
+  <li>wmic.exe - Commandline tool for interacting with WMI locally and for remote systems</li>
+  <li>wmiprvse.exe - Listening service used on remote systems</li>
+  <li>scrcons.exe - SCRipt CONSumer process that spawns child processes to run active script code (vbscript, jscript, etc)</li>
+  <li>mofcomp.exe - MOF file compiler which inserts data into the repository</li>
+  <li>wsmprovhost.exe - present on remote system if PSRemoting was used</li>
+</ul>
+
+<h1 id="files">Files</h1>
+<ul>
+  <li>C:\Windows\System32\wbem\Repository - Stores the CIM database files
+    <ul>
+      <li>OBJECTS.DATA - Objects managed by WMI</li>
+      <li>INDEX.BTR - Index of files imported into OBJECTS.DATA</li>
+      <li>MAPPING[1-3].MAP - correlates data in OBJECTS.DATA and INDEX.BTR</li>
+    </ul>
+  </li>
+  <li>C:\Windows\System32\wbem\AutoRecover - MOF files with <code class="highlighter-rouge">#PRAGMA AUTORECOVER</code> in first line will be saved here in case the repo needs to be built again, establishing persistence.
+    <ul>
+      <li>Review file timestamps</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="registry">Registry</h1>
+<ul>
+  <li>HKLM\SOFTWARE\Microsoft\WBEM\CIMOM\Autorecover MOFs - List of original MOF file locations previously compiled, even if deleted
+    <ul>
+      <li>Review file locations and names</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="logs">Logs</h1>
+<ul>
+  <li>Security events
+    <ul>
+      <li>4688 for any of the processes listed above</li>
+    </ul>
+  </li>
+  <li>Microsoft-Windows-WMI-Activity/Operational
+    <ul>
+      <li>5860 for temporary event consumer creation</li>
+      <li>5861 for permanent event consumer creation</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="detection-of-possible-abuse">Detection of possible abuse</h1>
+<ul>
+  <li>Privileged login followed by wmic commands</li>
+  <li>wmiprvse launching powershell</li>
+  <li>Presence of .mof files located outside the C:\Windows\System32\wbem\ directory</li>
+  <li>PowerShell invoke-wmimethod, invoke-cimmethod, get-wmiobject, or set-wmiinstance commands</li>
+  <li>wmic.exe commands - There are many, but here’s some notable ones used in attacks:
+    <ul>
+      <li><code class="highlighter-rouge">process call create</code> to start processes</li>
+      <li><code class="highlighter-rouge">/node:</code> specified target host to run remote commands</li>
+    </ul>
+  </li>
+  <li>wmiprvse.exe without svchost.exe parent</li>
+  <li>wmiprvse.exe with suspect child processes, like powershell</li>
+  <li>scrcons.exe is a rare process</li>
+</ul>
+
+<h1 id="investigative-commands">Investigative commands</h1>
+<ul>
+  <li>Get-WMIObject -Namespace root\Subscription -Class __EventFilter</li>
+  <li>Get-WMIObject -Namespace root\Subscription -Class __EventConsumer</li>
+  <li>Get-WMIObject -Namespace root\Subscription -Class __FilterToConsumerBinding</li>
+</ul>
+
+<h1 id="tools">Tools</h1>
+<ul>
+  <li><a href="https://github.com/fireeye/flare-wmi/tree/master/python-cim">FireEye python-cim</a>
+    <ul>
+      <li><a href="https://github.com/fireeye/flare-wmi/blob/master/python-cim/samples/show_filtertoconsumerbindings.py">show_filtertoconsumerbindings.py</a></li>
+      <li><a href="https://github.com/fireeye/flare-wmi/blob/master/python-cim/samples/timeline.py">timeline.py</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="references">References</h1>
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=CgtjINVUpuw">DFSP - WMI Forensics</a></li>
+  <li><a href="https://www.youtube.com/watch?v=aBQ1vEjK6v4">SANS DFIR - Investigating WMI Attacks</a></li>
+  <li><a href="https://www.fireeye.com/content/dam/fireeye-www/global/en/current-threats/pdfs/wp-windows-management-instrumentation.pdf">FireEye Windows Management Instrumentation (WMI) Offense, Defense, and Forensics whitepaper</a></li>
+  <li><a href="https://www.sans.org/blog/investigating-wmi-attacks/">SANS Investigating WMI Attacks blog post</a></li>
+</ul>
+
+  </div>
+
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Network Security Ninja</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Jeremiah Bess</li><li><a class="u-email" href="mailto:jeremiah.bess@gmail.com">jeremiah.bess@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/netsecninja"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">netsecninja</span></a></li><li><a href="https://www.linkedin.com/in/jeremiahbess"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">jeremiahbess</span></a></li><li><a href="https://www.twitter.com/netsecninja"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">netsecninja</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>A blog to post my Tactics, Techniques, and Procedures (TTPs) as a card-carrying member of the Blue Team (Cyber Defense). </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
