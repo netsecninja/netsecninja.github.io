@@ -30,11 +30,15 @@ Notes regarding how to use Docker and some DFIR information that I researched
         * Map exposed ports to specific port: '`p <HOSTPORT>:<CONTAINERPORT>`
 * Start a container: `docker container start <CONTAINERNAME OR ID>`
     * Other common options:
-        * Start interactive session: `-i`
+        * Start interactive session: `-it`
 * Stop a container: `docker container stop <CONTAINERNAME OR ID>`
 * Remove a container: `docker container rm <CONTAINERNAME OR ID>`
 * Info on a container: `docker container inspect <CONTAINERNAME OR ID>`
-* Enter a container shell: `docker container exec -it <CONTAINERNAME OR ID> bash`
+* Interact with a running container:
+    * Start a shell: `docker container exec -it <CONTAINERNAME OR ID> bash`
+    * Interact with an existing shell: `docker attach <CONTAINERNAME OR ID>`
+    * Close interactive session, leaving container running: `<CTRL+p> <CTRL-Q>`
+    
 
 # Docker volumes
 * Create a new volume: `docker volume create <VOLUMENAME>`
