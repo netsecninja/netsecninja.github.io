@@ -60,5 +60,5 @@ Notes regarding how to use Docker and some DFIR information that I researched
 * Capture volume contents: `sudo tar -zcf <VOLUMENAME>.tar.gz /var/lib/docker/volumes/<VOLUMENAME>`
 
 # References
-* [Docker - Documentaiton](https://docs.docker.com/)
+* [Docker - Documentation](https://docs.docker.com/)
 * [StackRox - Docker Forensics for Containers: How to Conduct Investigations](https://www.stackrox.com/post/2017/08/csi-container-edition-forensics-in-the-age-of-containers/)

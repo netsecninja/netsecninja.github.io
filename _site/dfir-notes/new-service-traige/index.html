@@ -3,20 +3,20 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
-<title>Mac Autoruns | Network Security Ninja</title>
+<title>New Service Triage | Network Security Ninja</title>
 <meta name="generator" content="Jekyll v3.8.7" />
-<meta property="og:title" content="Mac Autoruns" />
+<meta property="og:title" content="New Service Triage" />
 <meta name="author" content="Jeremiah Bess" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Notes from the DFSP episode on Mac Autoruns" />
-<meta property="og:description" content="Notes from the DFSP episode on Mac Autoruns" />
-<link rel="canonical" href="http://localhost:4000/dfir-notes/mac-autoruns/" />
-<meta property="og:url" content="http://localhost:4000/dfir-notes/mac-autoruns/" />
+<meta name="description" content="Notes from the DFSP episode on New Service Triage" />
+<meta property="og:description" content="Notes from the DFSP episode on New Service Triage" />
+<link rel="canonical" href="http://localhost:4000/dfir-notes/new-service-traige/" />
+<meta property="og:url" content="http://localhost:4000/dfir-notes/new-service-traige/" />
 <meta property="og:site_name" content="Network Security Ninja" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-07-07T14:34:37-06:00" />
 <script type="application/ld+json">
-{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/dfir-notes/mac-autoruns/"},"@type":"BlogPosting","url":"http://localhost:4000/dfir-notes/mac-autoruns/","author":{"@type":"Person","name":"Jeremiah Bess"},"headline":"Mac Autoruns","dateModified":"2020-07-07T14:34:37-06:00","datePublished":"2020-07-07T14:34:37-06:00","description":"Notes from the DFSP episode on Mac Autoruns","@context":"https://schema.org"}</script>
+{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/dfir-notes/new-service-traige/"},"@type":"BlogPosting","url":"http://localhost:4000/dfir-notes/new-service-traige/","author":{"@type":"Person","name":"Jeremiah Bess"},"headline":"New Service Triage","dateModified":"2020-07-07T14:34:37-06:00","datePublished":"2020-07-07T14:34:37-06:00","description":"Notes from the DFSP episode on New Service Triage","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Network Security Ninja" /></head>
 <body><header class="site-header" role="banner">
@@ -39,47 +39,92 @@
         <article class="post">
 
   <header class="post-header">
-    <h1 class="post-title">Mac Autoruns</h1>
+    <h1 class="post-title">New Service Triage</h1>
   </header>
 
   <div class="post-content">
-    <p>Notes from the DFSP episode on Mac Autoruns</p>
+    <p>Notes from the DFSP episode on New Service Triage</p>
 
-<h1 id="per-user">Per user</h1>
+<h1 id="windows-event-id">Windows Event ID</h1>
 <ul>
-  <li>System preferences &gt; Users and Groups. Click on each user you can see the autorun programs for each user.</li>
-  <li>/Users/<em>USER</em>/Library/LaunchAgents</li>
+  <li>Security: 4697 “A service was installed in the system”</li>
 </ul>
 
-<h1 id="for-all-users">For all users</h1>
+<h1 id="key-fields-and-possible-iocs">Key fields and possible IOCs</h1>
 <ul>
-  <li>/Library/LaunchDaemons</li>
-  <li>/Library/LaunchAgents</li>
-  <li>/Library/StartupItems</li>
+  <li>Security ID (User SID)</li>
+  <li>Account Name (User who created the service)</li>
+  <li>Login ID (Login associated with user who created the service)
+    <ul>
+      <li>Look for coorelating Security Event ID 4694 to find login details</li>
+    </ul>
+  </li>
+  <li>Service Name (Display name)
+    <ul>
+      <li>Long names</li>
+      <li>Misspellings</li>
+      <li>Legit sounding names</li>
+      <li>Random names</li>
+    </ul>
+  </li>
+  <li>Service File Name (executable/script to be run)
+    <ul>
+      <li>Usual locations are (anything else is suspect):
+        <ul>
+          <li>C:\Windows\System32</li>
+          <li>C:\Program Files</li>
+          <li>C:\Program Files (x86)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Service Type
+    <ul>
+      <li>Suspect values
+        <ul>
+          <li>0x1 (Kernel driver)</li>
+          <li>0x2 (File system driver)</li>
+          <li>0x8 (Recognizer driver)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Service Start Type
+    <ul>
+      <li>Suspect values
+        <ul>
+          <li>0x0 (Boot), associated with drivers</li>
+          <li>0x1 (System), associated with drivers</li>
+          <li>0x4 (Disabled), uncommon for a new service</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Service Account (user account to run server under)
+    <ul>
+      <li>Usually either (anything else is suspect):
+        <ul>
+          <li>localSystem</li>
+          <li>localService</li>
+          <li>networkService</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
 </ul>
 
-<h1 id="for-system-applications">For system applications</h1>
+<h1 id="detection">Detection</h1>
 <ul>
-  <li>/System/Library/LaunchAgents</li>
+  <li>Generally, new service installs should be rare</li>
+  <li>Low-frequency service names across environment</li>
+  <li>Low-frequency file names across environment</li>
+  <li>New driver-level services should originate from the driver folder or a legit location</li>
 </ul>
 
-<h1 id="run-as-root-tools">Run as root tools</h1>
+<h1 id="references">References</h1>
 <ul>
-  <li>/Library/PrivilegedHelperTools</li>
-</ul>
-
-<h1 id="plist-files">plist files</h1>
-<ul>
-  <li>com.apple.*.plist are usually legitimate applications</li>
-  <li>Filtered list of processes:</li>
-</ul>
-
-<p><code class="highlighter-rouge">launchctl list | grep -iv com.apple</code></p>
-
-<h1 id="references">References:</h1>
-<ul>
-  <li><a href="https://www.youtube.com/watch?v=yMnsVAjHMGE">DFSP - Mac Autoruns episode</a></li>
-  <li><a href="https://vincetocco.com/macos-locations-for-programs-that-start-on-boot-daemons-and-launchctl/">Vince Tocco - MacOS locations for programs that start on boot – Daemons and Launchctl blog post</a></li>
+  <li><a href="https://digitalforensicsurvivalpodcast.com/2020/06/23/dfsp-227-new-service-triage/">DFSP - New Service Triage episode</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4697">Windows - Event 4697 Documentation</a></li>
 </ul>
 
   </div>
