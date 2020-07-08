@@ -13,7 +13,7 @@ Notes from the DFSP episode on New Service Triage
 * Security ID (User SID)
 * Account Name (User who created the service)
 * Login ID (Login associated with user who created the service)
-  * Look for coorelating Security Event ID 4694 to find login details
+  * Look for coorelating Security Event ID 4624 to find login details
 * Service Name (Display name)
   * Long names
   * Misspellings
