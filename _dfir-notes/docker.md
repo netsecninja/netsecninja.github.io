@@ -20,8 +20,8 @@ Notes regarding how to use Docker and some DFIR information that I researched
 * Build from Dockerfile: `docker build <DOCKERFILE>`
 
 # Docker containers
-* List running containers: `docker container ls`
-    * List all container: `docker container ls -a`
+* List running containers: `docker container ps`
+    * List all container: `docker container ps -a`
 * Create a container and interact: `docker container run <IMAGENAME>`
     * Other common options:
         * Detached (background): `-d`
