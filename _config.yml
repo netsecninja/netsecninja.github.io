@@ -23,6 +23,9 @@ show_excerpts: true
 author: Jeremiah Bess
 linkedin_username: jeremiahbess
 twitter_username: netsecninja
+mastodon:
+  - username: netsecninja
+    instance: infosec.exchange
 github_username:  netsecninja
 google_analytics: UA-922167-7
 
